@@ -1,12 +1,16 @@
 from pathlib import Path
 import sys
 import json
+from io import BytesIO
+
+import pandas as pd
+import streamlit as st
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import streamlit as st
 
 from app.config import MATCH_THRESHOLD
 from app.db.sqlite_db import init_db
@@ -16,9 +20,12 @@ from app.jobs.tracker import save_job, fetch_jobs, fetch_job_by_id, update_job_s
 from app.llm.drafting import draft_cover_letter
 from app.notifications.telegram_bot import send_telegram_message
 from app.services.discovery_service import run_job_discovery
+from app.services.streamlit_job_filters import add_job_filters_sidebar, apply_job_filters
+
 
 st.set_page_config(page_title="AI Job Agent", layout="wide")
 init_db()
+
 
 if "drafts" not in st.session_state:
     st.session_state["drafts"] = {}
@@ -26,8 +33,10 @@ if "drafts" not in st.session_state:
 if "last_discovery_summary" not in st.session_state:
     st.session_state["last_discovery_summary"] = None
 
+
 st.title("AI Job Discovery and Application Agent")
 st.write("Discover jobs, score fit, receive Telegram alerts, and draft application materials.")
+
 
 st.subheader("Add Job Manually")
 
@@ -84,26 +93,29 @@ with st.form("manual_job_form"):
                 )
                 send_telegram_message(msg)
 
+
 if st.button("Run Job Discovery"):
     with st.spinner("Discovering and scoring jobs...", show_time=True):
         summary = run_job_discovery()
     st.session_state["last_discovery_summary"] = summary
+
 
 discovery_summary = st.session_state["last_discovery_summary"]
 
 if discovery_summary:
     st.subheader("Discovery Results")
     st.success(
-    f"Discovered: {discovery_summary.get('discovered_total', 0)} | "
-    f"Missing URL: {discovery_summary.get('missing_url_total', 0)} | "
-    f"Unique: {discovery_summary.get('unique_total', 0)} | "
-    f"Recent: {discovery_summary.get('recent_total', 0)} | "
-    f"Preferred location: {discovery_summary.get('preferred_total', 0)} | "
-    f"Processed: {discovery_summary.get('processed_total', 0)} | "
-    f"New: {discovery_summary.get('inserted_total', 0)} | "
-    f"Duplicates skipped: {discovery_summary.get('skipped_total', 0)} | "
-    f"Alerts sent: {discovery_summary.get('alerted_total', 0)}"
-)
+        f"Discovered: {discovery_summary.get('discovered_total', 0)} | "
+        f"Missing URL: {discovery_summary.get('missing_url_total', 0)} | "
+        f"Unique: {discovery_summary.get('unique_total', 0)} | "
+        f"Recent: {discovery_summary.get('recent_total', 0)} | "
+        f"Interest filtered: {discovery_summary.get('filtered_interest_total', 0)} | "
+        f"Preferred location: {discovery_summary.get('preferred_total', 0)} | "
+        f"Processed: {discovery_summary.get('processed_total', 0)} | "
+        f"New: {discovery_summary.get('inserted_total', 0)} | "
+        f"Duplicates skipped: {discovery_summary.get('skipped_total', 0)} | "
+        f"Alerts sent: {discovery_summary.get('alerted_total', 0)}"
+    )
 
     preview_data = []
     for item in discovery_summary.get("results", [])[:10]:
@@ -123,6 +135,7 @@ if discovery_summary:
     if preview_data:
         st.json(preview_data, expanded=False)
 
+
 st.subheader("Tracked Jobs")
 
 jobs = fetch_jobs()
@@ -130,33 +143,76 @@ jobs = fetch_jobs()
 if not jobs:
     st.info("No tracked jobs yet. Add one manually or run job discovery.")
 else:
-    min_score = st.slider(
-        "Minimum fit score to display",
+    jobs_rows = []
+    for row in jobs:
+        job_id, title, company, location, posted_at, fit_score, matched_skills, status, url = row
+        jobs_rows.append(
+            {
+                "job_id": job_id,
+                "title": title,
+                "company": company,
+                "location": location,
+                "posted_at": posted_at,
+                "fit_score": float(fit_score or 0),
+                "matched_skills": matched_skills,
+                "status": status,
+                "url": url,
+                "description": "",
+            }
+        )
+
+    jobs_df = pd.DataFrame(jobs_rows)
+
+    filters = add_job_filters_sidebar()
+    min_score = st.sidebar.slider(
+        "Minimum fit score",
         min_value=0,
         max_value=100,
         value=int(MATCH_THRESHOLD),
         step=5,
     )
-
-    show_limit = st.selectbox(
+    show_limit = st.sidebar.selectbox(
         "Jobs to display",
         [10, 25, 50, 100, 250],
         index=1,
     )
+    filters["min_score"] = min_score
+    filters["show_limit"] = show_limit
 
-    filtered_jobs = [row for row in jobs if (row[5] or 0) >= min_score]
-    jobs_to_show = filtered_jobs[:show_limit]
+    filtered_df = apply_job_filters(jobs_df, filters)
+    filtered_df = filtered_df[filtered_df["fit_score"] >= min_score]
+    filtered_df = filtered_df.sort_values(by=["fit_score", "job_id"], ascending=[False, False])
+    filtered_df = filtered_df.head(show_limit)
 
-    st.caption(
-        f"Showing {len(jobs_to_show)} of {len(filtered_jobs)} jobs "
-        f"with fit score >= {min_score}. Total tracked jobs: {len(jobs)}."
+    export_df = filtered_df.drop(columns=["description"], errors="ignore")
+    csv_bytes = export_df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="Export filtered jobs to CSV",
+        data=csv_bytes,
+        file_name="filtered-jobs.csv",
+        mime="text/csv",
+        use_container_width=True,
     )
 
-    if not jobs_to_show:
-        st.warning("No tracked jobs match the current score filter.")
+    st.caption(
+        f"Showing {len(filtered_df)} of {len(jobs_df)} tracked jobs "
+        f"with fit score >= {min_score}."
+    )
+
+    if filtered_df.empty:
+        st.warning("No tracked jobs match the current filters.")
     else:
-        for row in jobs_to_show:
-            job_id, title, company, location, posted_at, fit_score, matched_skills, status, url = row
+        for _, row in filtered_df.iterrows():
+            job_id = row["job_id"]
+            title = row["title"]
+            company = row["company"]
+            location = row["location"]
+            posted_at = row["posted_at"]
+            fit_score = row["fit_score"]
+            matched_skills = row["matched_skills"]
+            status = row["status"]
+            url = row["url"]
 
             with st.expander(f"{title} | {company} | Score: {fit_score}"):
                 st.write(f"Location: {location}")

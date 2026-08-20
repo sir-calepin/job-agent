@@ -67,16 +67,23 @@ US_STATE_ABBREVIATIONS = {
     "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC"
 }
 
-RECENT_HOURS = 24
-
-NON_US_HINTS = {
-    "canada", "ontario", "toronto", "vancouver",
-    "united kingdom", "uk", "england", "scotland", "wales", "london",
-    "ireland", "europe", "european union", "emea",
-    "apac", "asia pacific", "india", "germany", "france", "spain",
-    "australia", "new zealand", "singapore", "philippines",
-    "mexico", "brazil", "argentina", "colombia"
+CANADA_PROVINCE_NAMES = {
+    "alberta", "british columbia", "manitoba", "new brunswick",
+    "newfoundland and labrador", "nova scotia", "ontario",
+    "prince edward island", "quebec", "saskatchewan",
+    "northwest territories", "nunavut", "yukon"
 }
+
+CANADA_PROVINCE_ABBREVIATIONS = {
+    "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+}
+
+CANADA_CITY_TERMS = {
+    "toronto", "vancouver", "montreal", "calgary",
+    "ottawa", "edmonton", "winnipeg", "halifax"
+}
+
+RECENT_HOURS = 24
 
 REMOTE_TERMS = [
     "remote",
@@ -88,11 +95,14 @@ REMOTE_TERMS = [
     "home-based",
 ]
 
-EXPLICIT_US_TERMS = [
+US_ALLOW_TERMS = [
     "united states",
     "u.s.",
     "u.s.a.",
     "usa",
+    "us only",
+    "u.s. only",
+    "united states only",
     "us-based",
     "u.s.-based",
     "based in the us",
@@ -100,48 +110,143 @@ EXPLICIT_US_TERMS = [
     "anywhere in the us",
     "anywhere in the u.s.",
     "anywhere in the united states",
-    "remote - united states",
-    "remote, united states",
     "remote us",
     "remote, us",
-    "remote within the us",
-    "must reside in the us",
-    "must be based in the us",
-    "eligible to work in the us",
-    "authorized to work in the us",
-    "united states only",
-    "u.s. only",
-    "us only",
+    "remote - us",
+    "remote united states",
+    "remote, united states",
+    "remote - united states",
 ]
 
-STATE_RESTRICTION_PATTERNS = [
-    "remote - ",
-    "remote in ",
-    "remote within ",
-    "remote from ",
-    "must reside in ",
-    "must be located in ",
-    "must live in ",
-    "must be based in ",
-    "eligible states",
-    "hiring in ",
-    "available in the following states",
-    "open to candidates in ",
-    "candidates must live in ",
+CANADA_ALLOW_TERMS = [
+    "canada",
+    "canadian",
+    "canada only",
+    "remote canada",
+    "remote, canada",
+    "remote - canada",
+    "anywhere in canada",
+    "based in canada",
+    "canada-based",
+]
+
+NON_US_CANADA_TERMS = [
+    "india", "poland", "warsaw", "germany", "france", "spain", "italy",
+    "netherlands", "portugal", "ireland", "uk", "united kingdom", "england",
+    "scotland", "wales", "london", "europe", "emea", "apac", "asia pacific",
+    "singapore", "philippines", "australia", "new zealand", "mexico",
+    "brazil", "argentina", "colombia", "south africa"
+]
+
+JOB_INTEREST_INCLUDE_TERMS = [
+    "data analyst",
+    "data analytics",
+    "analytics analyst",
+    "business intelligence",
+    "bi analyst",
+    "reporting analyst",
+    "insights analyst",
+    "operations analyst",
+    "research analyst",
+    "market research",
+    "marketing analyst",
+    "product analyst",
+    "sql analyst",
+    "dashboard",
+    "tableau",
+    "power bi",
+    "data quality",
+    "data governance",
+]
+
+JOB_INTEREST_EXCLUDE_TERMS = [
+    "software engineer",
+    "senior software engineer",
+    "staff engineer",
+    "frontend",
+    "backend",
+    "full stack",
+    "full-stack",
+    "devops",
+    "site reliability",
+    "sre",
+    "designer",
+    "product designer",
+    "recruiter",
+    "sales",
+    "account executive",
+    "customer success",
+    "attorney",
+    "legal",
 ]
 
 
 def normalize_text(*parts):
     text = " ".join(str(part or "") for part in parts).lower()
+    text = text.replace("&nbsp;", " ")
+    text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
+def has_token(text, token):
+    pattern = rf"\b{re.escape(token.lower())}\b"
+    return re.search(pattern, text, flags=re.IGNORECASE) is not None
+
+
+def has_any_token(text, tokens):
+    return any(has_token(text, token) for token in tokens)
+
+
 def has_us_state_reference(text):
-    padded = f" {text.upper()} "
-    if any(f" {abbr} " in padded for abbr in US_STATE_ABBREVIATIONS):
+    if any(has_token(text, state) for state in US_STATE_NAMES):
         return True
-    return any(state in text for state in US_STATE_NAMES)
+
+    upper_text = f" {text.upper()} "
+    for abbr in US_STATE_ABBREVIATIONS:
+        if re.search(rf"\b{re.escape(abbr)}\b", upper_text):
+            return True
+
+    return False
+
+
+def has_canada_reference(text):
+    if has_any_token(text, CANADA_PROVINCE_NAMES):
+        return True
+
+    if has_any_token(text, CANADA_CITY_TERMS):
+        return True
+
+    upper_text = f" {text.upper()} "
+    for abbr in CANADA_PROVINCE_ABBREVIATIONS:
+        if re.search(rf"\b{re.escape(abbr)}\b", upper_text):
+            return True
+
+    return has_any_token(text, ["canada", "canadian"])
+
+
+def parse_recent_age(value):
+    lowered = str(value).strip().lower()
+    if not lowered:
+        return None
+
+    if lowered in {"just posted", "today"}:
+        return datetime.now(timezone.utc)
+
+    m = re.fullmatch(r"(\d+)\s*(h|d|w)\+?", lowered)
+    if not m:
+        return None
+
+    amount = int(m.group(1))
+    unit = m.group(2)
+
+    if unit == "h":
+        return datetime.now(timezone.utc) - timedelta(hours=amount)
+    if unit == "d":
+        return datetime.now(timezone.utc) - timedelta(days=amount)
+    if unit == "w":
+        return datetime.now(timezone.utc) - timedelta(weeks=amount)
+    return None
 
 
 def is_recent_job(posted_at):
@@ -152,6 +257,11 @@ def is_recent_job(posted_at):
         value = str(posted_at).strip()
         if not value:
             return True
+
+        relative_dt = parse_recent_age(value)
+        if relative_dt is not None:
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=RECENT_HOURS)
+            return relative_dt >= cutoff
 
         if value.isdigit():
             timestamp = int(value)
@@ -173,23 +283,34 @@ def is_recent_job(posted_at):
         return True
 
 
+def is_job_of_interest(title_text, description_text=""):
+    combined = normalize_text(title_text, description_text)
+
+    if any(term in combined for term in JOB_INTEREST_EXCLUDE_TERMS):
+        return False
+
+    return any(term in combined for term in JOB_INTEREST_INCLUDE_TERMS)
+
+
 def is_us_remote(location_text, description_text=""):
     combined = normalize_text(location_text, description_text)
 
-    has_remote = any(term in combined for term in REMOTE_TERMS)
-    if not has_remote:
+    if not has_any_token(combined, REMOTE_TERMS):
         return False
 
-    if any(term in combined for term in EXPLICIT_US_TERMS):
-        return True
-
-    if any(term in combined for term in NON_US_HINTS):
+    if has_any_token(combined, NON_US_CANADA_TERMS):
         return False
 
-    if any(pattern in combined for pattern in STATE_RESTRICTION_PATTERNS) and has_us_state_reference(combined):
+    if has_any_token(combined, US_ALLOW_TERMS):
         return True
 
-    if "remote" in combined and has_us_state_reference(combined):
+    if has_any_token(combined, CANADA_ALLOW_TERMS):
+        return True
+
+    if has_us_state_reference(combined):
+        return True
+
+    if has_canada_reference(combined):
         return True
 
     return False
@@ -201,7 +322,24 @@ def is_louisville_area_job(location_text, description_text=""):
     if any(keyword in combined for keyword in LOUISVILLE_AREA_KEYWORDS):
         return True
 
-    if "louisville" in combined and ("ky" in combined or "kentucky" in combined):
+    if has_token(combined, "louisville") and (
+        has_token(combined, "ky") or has_token(combined, "kentucky")
+    ):
+        return True
+
+    if has_token(combined, "jeffersonville") and (
+        has_token(combined, "in") or has_token(combined, "indiana")
+    ):
+        return True
+
+    if has_token(combined, "new albany") and (
+        has_token(combined, "in") or has_token(combined, "indiana")
+    ):
+        return True
+
+    if has_token(combined, "clarksville") and (
+        has_token(combined, "in") or has_token(combined, "indiana")
+    ):
         return True
 
     return False
@@ -219,6 +357,9 @@ def run_job_discovery():
     inserted_total = 0
     skipped_total = 0
     alerted_total = 0
+    score_failed_total = 0
+    save_failed_total = 0
+    filtered_interest_total = 0
     results = []
 
     seen_urls = set()
@@ -241,17 +382,37 @@ def run_job_discovery():
         location = getattr(job, "location", "") or ""
         description = getattr(job, "description", "") or ""
         posted_at = getattr(job, "posted_at", None)
+        job_url = str(getattr(job, "url", "") or "").strip()
+        title = getattr(job, "title", "") or ""
 
         if not is_recent_job(posted_at):
             continue
         recent_total += 1
 
+        if not is_job_of_interest(title, description):
+            filtered_interest_total += 1
+            continue
+
         if not (is_us_remote(location, description) or is_louisville_area_job(location, description)):
             continue
         preferred_total += 1
 
-        score_result = score_job(job)
-        inserted = save_job(job, score_result)
+        try:
+            score_result = score_job(job)
+        except Exception as e:
+            print(f"[DISCOVERY] score_job failed for {job_url}: {e}")
+            score_failed_total += 1
+            skipped_total += 1
+            continue
+
+        try:
+            inserted = save_job(job, score_result)
+        except Exception as e:
+            print(f"[DISCOVERY] save_job failed for {job_url}: {e}")
+            save_failed_total += 1
+            skipped_total += 1
+            continue
+
         processed_total += 1
 
         if inserted:
@@ -267,14 +428,14 @@ def run_job_discovery():
                 f"Company: {getattr(job, 'company', '')}\n"
                 f"Location: {location}\n"
                 f"Fit score: {score_result.get('fit_score', 0)}\n"
-                f"URL: {getattr(job, 'url', '')}"
+                f"URL: {job_url}"
             )
             try:
                 send_telegram_message(message)
                 alerted = True
                 alerted_total += 1
             except Exception as e:
-                print(f"[DISCOVERY] Telegram alert failed for {getattr(job, 'url', '')}: {e}")
+                print(f"[DISCOVERY] Telegram alert failed for {job_url}: {e}")
 
         results.append({
             "job": job,
@@ -288,11 +449,14 @@ def run_job_discovery():
         "missing_url_total": missing_url_total,
         "unique_total": unique_total,
         "recent_total": recent_total,
+        "filtered_interest_total": filtered_interest_total,
         "preferred_total": preferred_total,
         "processed_total": processed_total,
         "inserted_total": inserted_total,
         "skipped_total": skipped_total,
         "alerted_total": alerted_total,
+        "score_failed_total": score_failed_total,
+        "save_failed_total": save_failed_total,
         "results": results,
     }
 
@@ -301,10 +465,13 @@ def run_job_discovery():
         f"Missing URL: {missing_url_total} | "
         f"Unique: {unique_total} | "
         f"Recent: {recent_total} | "
+        f"Interest filtered: {filtered_interest_total} | "
         f"Preferred location: {preferred_total} | "
         f"Processed: {processed_total} | "
         f"New: {inserted_total} | "
         f"Duplicates skipped: {skipped_total} | "
+        f"Score failed: {score_failed_total} | "
+        f"Save failed: {save_failed_total} | "
         f"Alerts sent: {alerted_total}"
     )
 

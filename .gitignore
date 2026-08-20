@@ -1,2 +1,8 @@
-/.env.venv/
+# Local environment variables (API keys, secrets)
+.env
+.env.local
+
+# Virtual environments
+venv/
 .venv/
+env/

@@ -1,6 +1,162 @@
-Caleb Adewale
-6 years of Data Analyst experience
-Strong in Python, SQL, R, Tableau, Power BI, dashboarding, reporting, analytics
-Background in agricultural economics and research
-Experience in higher education, student success analytics and market research
-Interested in data analyst, business analyst, research analyst, consumer insights, and related roles
+# Candidate Profile — Caleb Adewale
+
+## Professional Summary
+Caleb Adewale is a Data Analyst, Business Intelligence professional, and applied research specialist with 6+ years of experience across data analytics, reporting, dashboard development, student success analytics, market research, consumer insights, healthcare analytics, agricultural economics, and policy research.
+
+He is strongest in Python, SQL, R, Tableau, Power BI, Excel, dashboarding, reporting, analytics, ETL, predictive analytics, statistics, applied econometrics, and data storytelling. He also has training in artificial intelligence, including agentic AI, RAG frameworks, machine learning, NLP, and AI-assisted workflow automation.
+
+## Core Value Proposition
+I help organizations turn complex data into clear, actionable decisions through analytics, dashboards, reporting, and applied research. My work combines technical depth with business and policy insight, allowing me to support executives, researchers, and stakeholders with practical, evidence-based recommendations.
+
+## Target Roles
+- Data Analyst
+- Business Analyst
+- Business Intelligence Analyst
+- Policy Analyst
+- Research Analyst
+- Consumer Insights Analyst
+- Market Research Analyst
+- Higher Education Analytics Analyst
+- Student Success Analyst
+- Economic Research Analyst
+- Analyst
+
+## Core Technical Skills
+- Python
+- SQL
+- R
+- Tableau
+- Power BI
+- Excel
+- Power Query
+- Dashboard Development
+- Reporting and KPI Tracking
+- Data Cleaning and Validation
+- ETL and Data Preparation
+- Statistical Analysis
+- Predictive Analytics
+- Applied Econometrics
+- Survey Research
+- Data Visualization
+- Data Storytelling
+
+## AI and Advanced Analytics
+- Agentic AI
+- Retrieval-Augmented Generation (RAG)
+- Machine Learning
+- Natural Language Processing
+- Prompt-based workflow design
+- Decision support systems
+- AI-assisted automation
+
+## Professional Experience
+
+### Data Analyst — Student Success Center, University of Louisville
+January 2026 – Present
+- Support institutional research and student success initiatives through analytics, dashboards, and executive reporting.
+- Collect, clean, validate, and integrate institutional data from multiple sources.
+- Develop Power BI dashboards for leadership.
+- Analyze retention, persistence, enrollment, and graduation trends.
+- Produce recurring KPI reports and predictive analyses.
+- Translate findings into recommendations for student success and institutional planning.
+
+Key tools:
+- Power BI, SQL, Python, R, Microsoft Excel, Microsoft SQL Server
+
+Key strengths demonstrated:
+- Dashboard development
+- KPI reporting
+- Executive reporting
+- Statistical analysis
+- Predictive analytics
+- Data validation
+- Student success analytics
+
+### Graduate Research Assistant — Aquaculture Economics Group, University of Arkansas at Pine Bluff
+July 2023 – December 2025
+- Conducted applied economic research on fisheries economics, agricultural policy, food systems, and rural development.
+- Designed quantitative research methodologies and analyzed large economic datasets.
+- Estimated econometric models and contributed to policy evaluation and research manuscripts.
+- Presented findings at national and international conferences.
+- Built reproducible analytical workflows.
+
+Key tools:
+- STATA, R, SQL, Excel, SPSS, IMPLAN
+
+Key strengths demonstrated:
+- Applied econometrics
+- Regression analysis
+- Impact evaluation
+- Economic impact analysis
+- Forecasting
+- Survey analysis
+- Technical writing
+
+### Data Analyst / Research Associate — ESICAL Research Solutions
+April 2019 – June 2023
+- Led multidisciplinary analytics and research projects across healthcare, agriculture, education, and public policy.
+- Built SQL databases and ETL workflows.
+- Performed statistical analyses and developed executive dashboards.
+- Produced technical reports, policy evaluations, and client deliverables.
+- Managed client relationships and project execution.
+
+Key tools:
+- SQL, Python, Power BI, Tableau, Excel, R, SPSS, STATA, MySQL
+
+Key strengths demonstrated:
+- Business intelligence
+- ETL development
+- Dashboard design
+- Client consulting
+- Project management
+- Survey analytics
+- Forecasting
+- Reporting automation
+
+### Research Assistant — Alliance Bioversity International CIAT
+- Supported agricultural research projects.
+- Conducted literature reviews.
+- Assisted with survey data analysis.
+- Contributed to technical reports and dissemination.
+
+### Data Analyst — Cedar Multi-Global Health
+- Managed healthcare research databases.
+- Conducted statistical analyses.
+- Supported healthcare program evaluation.
+- Produced analytical reports and improved data quality.
+
+### Consumer Insights Analyst — NielsenIQ
+- Conducted quantitative market research and consumer insights analyses.
+- Supported brand strategy, product development, pricing, and marketing decisions.
+- Designed consumer research studies and performed segmentation and customer analytics.
+- Delivered strategic recommendations to clients.
+
+Key tools:
+- SPSS, Excel, survey platforms, SQL where applicable
+
+## Research and Academic Strengths
+- Background in agricultural economics and applied research.
+- Training in econometrics, impact evaluation, survey analysis, and statistical modeling.
+- Experience presenting and publishing research findings.
+- Experience in interdisciplinary research spanning economics, agriculture, food systems, healthcare, and higher education.
+
+## Publications and Recognition
+- Peer-reviewed publications.
+- Conference presentations.
+- Research awards, assistantships, and grants.
+- Active interdisciplinary research background.
+
+## Ideal Job Match Signals
+Jobs are a strong match when they involve:
+- SQL and Python analysis
+- Tableau or Power BI dashboards
+- KPI reporting and executive reporting
+- Business intelligence or analytics
+- Research or policy analysis
+- Consumer insights or market research
+- Higher education or student success analytics
+- Statistical analysis or econometrics
+- Cross-functional communication with stakeholders
+
+## Writing Guidance for Scoring
+Score roles more highly when the job description aligns with analytics, reporting, dashboards, research, or business decision support. Give strong credit to roles that combine technical analysis with stakeholder communication, strategic insight, and measurable outcomes.

@@ -1,8 +1,16 @@
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
+
+JOB_FEED_URLS = json.loads(os.getenv("JOB_FEED_URLS", "[]"))
+
+if not isinstance(JOB_FEED_URLS, list):
+    raise TypeError(
+        f"JOB_FEED_URLS must be a list, got {type(JOB_FEED_URLS).__name__}: {JOB_FEED_URLS!r}"
+    )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -23,13 +31,10 @@ DATABASE_PATH = os.getenv("DATABASE_PATH", str(PROCESSED_DIR / "jobs.db"))
 CHROMA_DIR = os.getenv("CHROMA_DIR", str(VECTOR_DIR))
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "job_agent_docs")
 
-JOB_FEED_URLS = [
-    url.strip()
-    for url in os.getenv("JOB_FEED_URLS", "").split(",")
-    if url.strip()
-]
-
-MATCH_THRESHOLD = int(os.getenv("MATCH_THRESHOLD", "75"))
+MATCH_THRESHOLD = int(os.getenv("MATCH_THRESHOLD", "70"))
 TOP_K = int(os.getenv("TOP_K", "4"))
 MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "4000"))
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0.2"))
+
+print("JOB_FEED_URLS type:", type(JOB_FEED_URLS))
+print("JOB_FEED_URLS sample:", JOB_FEED_URLS[:2] if isinstance(JOB_FEED_URLS, list) else repr(JOB_FEED_URLS))

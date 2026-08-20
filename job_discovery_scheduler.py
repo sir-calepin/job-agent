@@ -9,7 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
-DISCOVERY_INTERVAL_MINUTES = int(os.environ.get("DISCOVERY_INTERVAL_MINUTES", "30"))
+DISCOVERY_INTERVAL_MINUTES = int(os.environ.get("DISCOVERY_INTERVAL_MINUTES", "60"))
 DISCOVERY_MODULE = os.environ.get("DISCOVERY_MODULE", "app.services.discovery_service")
 DISCOVERY_FUNCTION = os.environ.get("DISCOVERY_FUNCTION", "run_job_discovery")
 
